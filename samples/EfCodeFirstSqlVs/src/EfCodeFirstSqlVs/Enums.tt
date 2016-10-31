@@ -9,9 +9,7 @@
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#
 	/****************************** Basic Configuration *********************************/
-	
 
-	//string connectionString = "data source=localhost;Initial Catalog=Northwind;Integrated Security=true";
 	string connectionString = "Server=(localdb)\\mssqllocaldb;Database=T4EnumGenerator.EfCodeFirstSqlVs.SampleDb;Trusted_Connection=True;";
 
 	string[] tables = new string[] { "dbo.Parents" };	
@@ -69,8 +67,7 @@ foreach(var tableInfo in tableInfos)
 	/// <#= tableInfo.DerivedTable #> auto generated enumeration
 	/// </summary>
 	[GeneratedCode("TextTemplatingFileGenerator", "10")]
-
-	<#
+<#
 if (enableWcfSerializationAttributes) 
 {
 #>
@@ -78,10 +75,9 @@ if (enableWcfSerializationAttributes)
 <#
 }
 #>
-	public enum <#= GetDerivedTableNameOnly(tableInfo) #>Ids
+	public enum <#= GetDerivedTableNameOnly(tableInfo) #>Ids 
 	{
 <#
-	
 	var values = new List<EnumItem>();
 	string columnName = "";
 
@@ -102,9 +98,7 @@ if (enableWcfSerializationAttributes)
 
 	for(int j = 0; j < values.Count; j++)
 	{
-#>
 
-<#
 if (enableWcfSerializationAttributes)
 {
 #>
@@ -115,7 +109,8 @@ if (enableWcfSerializationAttributes)
 		<#= Pascalize(values[j].Text, prefixForEnumsStartingWithIntegers) #> = <#= values[j].Id #><#= (j < values.Count - 1)?",\r\n":string.Empty #>
 <#
 	}
-#>  }
+#>  
+	}
 <# 
 }
 #>
