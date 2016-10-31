@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using EfCodeFirstSql.Models;
+using EfCodeFirstSqlliteVsCode.Models;
 
-namespace EfCodeFirstSql.Migrations
+namespace EfCodeFirstSqlliteVsCode.Migrations
 {
     [DbContext(typeof(SampleContext))]
     partial class SampleContextModelSnapshot : ModelSnapshot
@@ -15,7 +15,7 @@ namespace EfCodeFirstSql.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.0-rtm-21431");
 
-            modelBuilder.Entity("EfCodeFirstSql.Models.Parent", b =>
+            modelBuilder.Entity("EfCodeFirstSqlliteVsCode.Models.Parent", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
@@ -32,9 +32,9 @@ namespace EfCodeFirstSql.Migrations
                     b.HasDiscriminator<string>("Discriminator").HasValue("Parent");
                 });
 
-            modelBuilder.Entity("EfCodeFirstSql.Models.Child", b =>
+            modelBuilder.Entity("EfCodeFirstSqlliteVsCode.Models.Child", b =>
                 {
-                    b.HasBaseType("EfCodeFirstSql.Models.Parent");
+                    b.HasBaseType("EfCodeFirstSqlliteVsCode.Models.Parent");
 
 
                     b.ToTable("Child");

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace EfCodeFirstSql.Models
+namespace EfCodeFirstSqlliteVsCode.Models
 {
     public class SampleContext : DbContext
     {
@@ -9,7 +9,7 @@ namespace EfCodeFirstSql.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Filename=./T4EnumGenerator.EfCodeFirstSql.SampleDb.db");
+            optionsBuilder.UseSqlite("Filename=./T4EnumGenerator.EfCodeFirstSqlliteVsCode.SampleDb.db");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {

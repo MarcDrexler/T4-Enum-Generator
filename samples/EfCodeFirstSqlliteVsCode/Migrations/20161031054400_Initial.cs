@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace EfCodeFirstSql.Migrations
+namespace EfCodeFirstSqlliteVsCode.Migrations
 {
     public partial class Initial : Migration
     {

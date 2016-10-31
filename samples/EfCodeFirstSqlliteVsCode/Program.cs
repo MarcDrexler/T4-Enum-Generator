@@ -1,7 +1,7 @@
 ﻿using System;
-using EfCodeFirstSql.Models;
+using EfCodeFirstSqlliteVsCode.Models;
 
-namespace EfCodeFirstSql
+namespace EfCodeFirstSqlliteVsCode
 {
     public class Program
     {
