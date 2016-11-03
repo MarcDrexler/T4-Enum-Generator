@@ -30,9 +30,9 @@ run the following commands from the current directory to create a database with 
 after you have created the database:
 
 1. start *Visual Studio 2015*
-2. navigate to file *Enums.tt*
+2. navigate to file *Enums.tt* or *StaticClasses.tt*
 3. save the file
 
 expected result:
 
-a file called *Enums.generated.cs* should be created or updated according to the values in the database
+a file called *Enums.generated.cs* or *StaticClasses.generated.cs* should be created or updated according to the values in the database
