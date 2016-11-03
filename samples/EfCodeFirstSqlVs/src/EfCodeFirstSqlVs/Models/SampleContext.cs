@@ -7,6 +7,8 @@ namespace EfCodeFirstSqlVs.Models
         public DbSet<Child> Children { get; set; }
         public DbSet<Parent> Parents { get; set; }
 
+        public DbSet<UniqueClass> UniqueClasses { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=T4EnumGenerator.EfCodeFirstSqlVs.SampleDb;Trusted_Connection=True;");
@@ -14,10 +16,13 @@ namespace EfCodeFirstSqlVs.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
             // set unique indexes
             modelBuilder.Entity<Parent>()
                 .HasIndex(b => b.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<UniqueClass>()
+                .HasIndex(b => b.Id)
                 .IsUnique();
         }
     }

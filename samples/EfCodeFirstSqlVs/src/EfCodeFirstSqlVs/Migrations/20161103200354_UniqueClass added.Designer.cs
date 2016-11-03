@@ -8,9 +8,10 @@ using EfCodeFirstSqlVs.Models;
 namespace EfCodeFirstSqlVs.Migrations
 {
     [DbContext(typeof(SampleContext))]
-    partial class SampleContextModelSnapshot : ModelSnapshot
+    [Migration("20161103200354_UniqueClass added")]
+    partial class UniqueClassadded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.1")
