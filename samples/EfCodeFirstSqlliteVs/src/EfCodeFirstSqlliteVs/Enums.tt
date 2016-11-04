@@ -1,0 +1,265 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ output extension=".generated.cs" #>
+<#@ Assembly Name="System.Data" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Data" #>
+<#@ import namespace="System.Data.SqlClient" #>
+<#@ import namespace="System.Data.Sqlite" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#
+	/****************************** Basic Configuration *********************************/
+
+	string connectionString = "Server=(localdb)\\mssqllocaldb;Database=T4EnumGenerator.EfCodeFirstSqlVs.SampleDb;Trusted_Connection=True;";
+
+	string[] tables = new string[] { "dbo.Parents" };	
+	string columnId = "Id";
+	string[] columnsToCheck = new string[] {"Name", "Description"};
+	bool enableWcfSerializationAttributes = false;
+		
+
+	/***************************** Advanced Configuration *******************************/
+	
+
+	string prefixForEnumsStartingWithIntegers = "X";
+	string languageStringTable = "dbo.LanguageString";
+
+	
+	/******************************** Configuration End *********************************/		
+#>
+using System;
+using System.CodeDom.Compiler;
+<#
+if (enableWcfSerializationAttributes)
+{
+#>
+	using System.Runtime.Serialization;
+<#
+}
+#>
+
+namespace <#=System.Runtime.Remoting.Messaging.CallContext.LogicalGetData("NamespaceHint").ToString()#>.Enums
+{
+<# 
+var tableInfos = new List<TableInfo>();
+	
+foreach (string tableName in tables)
+{
+	List<string> derivedTables = GetDerivedTables(connectionString, tableName);
+	if (derivedTables.Count > 0)
+	{
+		foreach(var derivedTable in derivedTables)
+		{
+			tableInfos.Add(new TableInfo() { BaseTable = tableName, DerivedTable = derivedTable });
+		}
+	}
+	else
+	{
+		tableInfos.Add(new TableInfo() { DerivedTable = tableName });
+	}
+}
+
+foreach(var tableInfo in tableInfos)
+{	
+	
+#>
+	/// <summary>
+	/// <#= tableInfo.DerivedTable #> auto generated enumeration
+	/// </summary>
+	[GeneratedCode("TextTemplatingFileGenerator", "10")]
+<#
+if (enableWcfSerializationAttributes) 
+{
+#>
+	[DataContract]
+<#
+}
+#>
+	public enum <#= GetDerivedTableNameOnly(tableInfo) #>Ids 
+	{
+<#
+	var values = new List<EnumItem>();
+	string columnName = "";
+
+	for(int i = 0; i < columnsToCheck.Length; i++)
+	{
+		if (HasColumn(connectionString, tableInfo, columnsToCheck[i]))
+		{
+			columnName = columnsToCheck[i];			
+			values = GetEnumItems(connectionString, tableInfo, columnId, columnName);
+			break;
+		}
+		else if (HasReferenceToLanguageStringTable(connectionString, tableInfo))
+		{
+			values = GetEnumItemsFromLanguageStringTable(connectionString, tableInfo);
+			break;
+		}
+	}
+
+	for(int j = 0; j < values.Count; j++)
+	{
+
+if (enableWcfSerializationAttributes)
+{
+#>
+		[EnumMember]
+<#
+}
+#>
+		<#= Pascalize(values[j].Text, prefixForEnumsStartingWithIntegers) #> = <#= values[j].Id #><#= (j < values.Count - 1)?",\r\n":string.Empty #>
+<#
+	}
+#>  
+	}
+<# 
+}
+#>
+}
+<#+
+	private string Pascalize(string value, string prefixForEnumsStartingWithIntegers)
+	{
+		value = ReplaceSpecialChars(value);
+		
+		Regex rx = new Regex(@"(?:[^a-zA-Z0-9]*)(?<first>[a-zA-Z0-9])(?<reminder>[a-zA-Z0-9]*)(?:[^a-zA-Z0-9]*)");
+		value = rx.Replace(value.ToString(), m => m.Groups["first"].ToString().ToUpper() + m.Groups["reminder"].ToString().ToLower());		
+			
+		int result;
+		if (Int32.TryParse(value.Substring(0,1), out result))
+		{
+			 value = prefixForEnumsStartingWithIntegers + value;
+		}
+		
+		return value;
+	}
+	
+	private bool HasColumn(string connectionString, TableInfo tableInfo, string columnName)
+	{
+		bool retValue;
+		using (SqliteConnection conn = new SqliteConnection(connectionString))
+		{
+			conn.Open();
+			string tableToCheckForColumn = (!String.IsNullOrEmpty(tableInfo.BaseTable))?tableInfo.BaseTable:tableInfo.DerivedTable;
+			string command = string.Format("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{0}' AND COLUMN_NAME = '{1}'", tableToCheckForColumn.Split('.')[1], columnName);
+			SqliteCommand  comm = new SqliteCommand (command, conn);
+			SqliteDataReader reader = comm.ExecuteReader();
+			retValue = reader.Read();
+		}
+		return retValue;
+	}
+
+	private bool HasReferenceToLanguageStringTable(string connectionString, TableInfo tableInfo)
+	{
+		bool retValue;
+		using (SqliteConnection conn = new SqliteConnection(connectionString))
+		{
+			conn.Open();
+			string tableToCheckForColumn = (!String.IsNullOrEmpty(tableInfo.BaseTable))?tableInfo.BaseTable:tableInfo.DerivedTable;
+			string command = string.Format("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'LanguageString' AND COLUMN_NAME = '{0}Id'", tableToCheckForColumn.Split('.')[1]);
+			SqliteCommand  comm = new SqliteCommand (command, conn);
+			SqliteDataReader reader = comm.ExecuteReader();
+			retValue = reader.Read();
+		}
+		return retValue;
+	}
+	
+	private List<string> GetDerivedTables(string connectionString, string tableName)
+	{
+		List<string> values = new List<string>();
+		using (SqliteConnection conn = new SqliteConnection(connectionString))
+		{
+			conn.Open();
+			string command = string.Format("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME LIKE '{0}[_]%' AND TABLE_NAME NOT LIKE '%[_]tracking'", tableName);
+			SqliteCommand  comm = new SqliteCommand (command, conn);
+			SqliteDataReader reader = comm.ExecuteReader();
+			while(reader.Read())
+			{
+				values.Add(reader["TABLE_NAME"].ToString());
+			}
+		}
+		return values;
+	}
+
+	private List<EnumItem> GetEnumItems(string connectionString, TableInfo tableInfo, string columnId, string columnName)
+	{
+		var values = new List<EnumItem>();
+		using (SqliteConnection conn = new SqliteConnection(connectionString))
+		{
+			conn.Open();
+			string command = "";
+
+			if (String.IsNullOrEmpty(tableInfo.BaseTable))
+			{
+				command = string.Format("SELECT {0}, {1} FROM {2} order by {0}", columnId, columnName, tableInfo.DerivedTable);
+			}
+			else
+			{
+				command = string.Format("SELECT t1.{0}, t1.{1} FROM {2} AS t1 JOIN {3} AS t2 ON t1.Id = t2.Id order by {0}", columnId, columnName, tableInfo.BaseTable, tableInfo.DerivedTable);
+			}
+			SqliteCommand  comm = new SqliteCommand (command, conn);
+			SqliteDataReader reader = comm.ExecuteReader();
+			while(reader.Read())
+			{
+				values.Add(new EnumItem() { Id = reader[columnId].ToString(), Text = reader[columnName].ToString() });
+			}
+		}
+
+		return values;
+    }
+
+	private List<EnumItem> GetEnumItemsFromLanguageStringTable(string connectionString, TableInfo tableInfo)
+	{
+		var values = new List<EnumItem>();
+	//	using (SqliteConnection conn = new SqliteConnection(connectionString))
+	//{
+	//	conn.Open();
+	//	string command = string.Format("SELECT t.Id, ls.Text FROM {0} AS t JOIN " + languageStringTable + " AS ls ON t.Id = ls.{1}Id WHERE ls.LanguageId = 1 order by t.Id", tableInfo.DerivedTable, tableInfo.DerivedTable.Split('.')[1]);
+	//	SqliteCommand  comm = new SqliteCommand (command, conn);
+	//	SqliteDataReader reader = comm.ExecuteReader();
+	//	while(reader.Read())
+	//	{
+	//		values.Add(new EnumItem() { Id = reader[0].ToString(), Text = reader[1].ToString() });
+	//	}
+	//}
+		return values;
+    }
+	
+	private string ReplaceSpecialChars(string text)
+	{
+		text = text.Replace(" ", "_");
+		text = text.Replace("-", "_");
+		text = text.Replace("/", "_");
+		text = text.Replace("ä","ae");
+		text = text.Replace("ü","ue");
+		text = text.Replace("ö","oe");
+		text = text.Replace("Ä","Ae");
+		text = text.Replace("Ü","Ue");
+		text = text.Replace("Ö","Oe");
+		text = text.Replace("ß", "ss");
+		return text;
+	}
+	
+	private string GetDerivedTableNameOnly(TableInfo tableInfo)
+	{		
+		if (tableInfo.DerivedTable.StartsWith(tableInfo.BaseTable + "_"))
+		{
+			return tableInfo.DerivedTable.Replace(tableInfo.BaseTable + "_", "");
+		}
+		else
+		{
+			return tableInfo.DerivedTable.Split('.')[1];
+		}
+	}
+	
+	public class EnumItem
+	{
+		public string Id { get; set; }
+		public string Text { get; set; }
+	}
+	
+	public class TableInfo
+	{
+		public string BaseTable { get; set; }
+		public string DerivedTable { get; set; }
+	}
+#>
