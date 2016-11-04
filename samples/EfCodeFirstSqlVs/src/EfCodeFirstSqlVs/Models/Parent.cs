@@ -1,9 +1,7 @@
 ﻿namespace EfCodeFirstSqlVs.Models
 {
-    public class Parent
+    public class Parent : IEntity
     {
-        public int Id { get; set; }
-
         public string Name { get; set; }
     }
 }

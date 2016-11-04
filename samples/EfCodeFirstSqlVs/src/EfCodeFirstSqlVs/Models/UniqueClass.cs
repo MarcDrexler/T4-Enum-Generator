@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 
 namespace EfCodeFirstSqlVs.Models
 {
-    public class UniqueClass
+    public class UniqueClass : LocalizedEntity
     {
-        public Guid Id { get; set; }
-
-        public string Name { get; set; }
+        public Guid InternalId { get; set; }
     }
 }

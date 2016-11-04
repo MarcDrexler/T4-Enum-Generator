@@ -6,8 +6,8 @@ namespace EfCodeFirstSqlVs.Models
     {
         public DbSet<Child> Children { get; set; }
         public DbSet<Parent> Parents { get; set; }
-
         public DbSet<UniqueClass> UniqueClasses { get; set; }
+        public DbSet<LanguageString> LanguageStrings { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
